@@ -3,7 +3,7 @@ function stylize(thisThing: any, withStyle: any) {
 }
 
 function getRandom<G>(fromArray: G[]): G {
-    return fromArray[Math.round(Math.random() * fromArray.length + 1)]
+    return fromArray[Math.floor(Math.random() * fromArray.length)]
 }
 
 
@@ -14,8 +14,8 @@ class Dot {
         public title: string,
         public linked: Dot[] = [],
         public longText: string = "",
-        public radius: number = 20,
-        public color: string = getRandom(["red", "yellow", "green", "lightpink"]),
+        public radius: number = 10,
+        public color: string = getRandom(["red", "yellow", "green", "lightpink", "blue", "purple", "white", "violet"]),
         public shouldBeOnScreen: boolean = true,
     ) { }
 
@@ -25,7 +25,7 @@ class Dot {
         c.fillStyle = this.color
         c.ellipse(this.x, this.y, this.radius, this.radius, 0, 0, Math.PI * 2)
         c.font = "2rem Arial"
-        c.fillText(this.title, this.x + this.radius  + this.radius * 0.5, this.y + this.radius + this.radius * 0.5)
+        c.fillText(this.title, this.x + this.radius + this.radius * 0.5, this.y + this.radius + this.radius * 0.5)
         c.fill()
         c.closePath()
     }
@@ -34,7 +34,7 @@ class Dot {
 class GraphingCanvas {
     public context: CanvasRenderingContext2D
     constructor(
-        public bgColor: string = "darkblue",
+        public bgColor: string = "#111",
         public width: number = innerWidth,
         public height: number = innerHeight,
         public dots: Dot[] = [],
@@ -63,14 +63,17 @@ class GraphingCanvas {
             links.push(linkTo)
         }
         this.dots.push(new Dot(x, y, title, links))
+        let inputter = document.getElementById("inputter")! as HTMLInputElement
+        inputter.value = ""
         // for(let dot in this.dots)
         // this.dots.push(new Dot(this.randomW(), this.randomH(), ""))
         // console.log(this.dots.length)
     }
     populateGraphWithTestNodes() {
         let i = 0;
-        while (i < 50) {
-            this.dots.push(new Dot(this.width * Math.random(), this.height * Math.random(), "meow"))
+        while (i < 500) {
+            let title = getRandom(["meow", "woof", "bark", 'purr', "buzz", "zzzz", "side", "left", "right", "orange", "cat", "wooo", "guitar playing", "sheet music", "water bottle", "cup"])
+            this.dots.push(new Dot(this.width * Math.random(), this.height * Math.random(), title))
             i++
         }
         this.dots.forEach(dot => { Math.random() > 0 ? dot.linked.push(this.dots[Math.round((this.dots.length - 27) * Math.random())]) : "" })
@@ -80,36 +83,75 @@ class GraphingCanvas {
         this.context.fillRect(0, 0, this.width, this.height)
     }
     calculatePhysics() {
-        let C0 = 3
-        let C1 = 2 * C0
-        let C2 = 2 * C0
-        let C3 = 1 * C0
-        let C4 = 0.1 * C0
-        let C5 = 5e-5 * C2 * Math.log(this.dots.length) // increase the central force depending on how many dots are already onscreen
+        C5 = normalC5 * C2 * Math.log(this.dots.length) // increase the central force depending on how many dots are already onscreen
         this.dots.forEach(dot => {
             this.dots.forEach(dot2 => {
                 if (dot !== dot2) {
+                    C4 *= 0.9999999
+                    C2 *= 1.00000001
+                    C3 *= 1.00000001
+                    C5 *= 0.9999999
+                    // C2 *= 0.9999999
                     // attract
-                    if (dot.linked.includes(dot2)) {
-                        let dx = dot.x - dot2.x
-                        let fx = C1 * Math.log(Math.abs(dx) / C2) * Math.sign(dx) * -1 * C4
-                        let dy = dot.y - dot2.y
-                        let fy = C1 * Math.log(Math.abs(dy) / C2) * Math.sign(dy) * -1 * C4
-                        dot.x += fx
-                        dot.y += fy
-                        dot2.x -= fx
-                        dot2.y -= fy
+                    if (dot.linked.includes(dot2) || dot2.linked.includes(dot)) {
+                        // let dx = dot.x - dot2.x
+                        // let dy = dot.y - dot2.y
+
+                        // let fx = C1 * Math.log(Math.abs(dx) / C2) * Math.sign(dx) * -1 * C4
+                        // let fy = C1 * Math.log(Math.abs(dy) / C2) * Math.sign(dy) * -1 * C4
+
+                        // dot.x += fx
+                        // dot.y += fy
+
+                        // dot2.x -= fx
+                        // dot2.y -= fy
+
+                        let dx = Math.abs(dot.x - dot2.x)
+                        let dy = Math.abs(dot.y - dot2.y)
+                        let ideal = dot.radius * 3
+                        let d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2))
+                        let sx = 5
+                        let sy = 5
+                        if (dot.x > dot2.x) {
+                            sx *= -0.001
+                        }
+                        if (dot.y > dot2.y) {
+                            sy *= -0.001
+                        }
+                        // if (dot.x < dot2.x) {
+                        //     sx *= -1
+                        // }
+                        // d*= 2
+                        // if (d > 1000){
+                            let div = Math.log(d)
+                            if (dx > ideal) {
+                                dot.x += div * sx * C4 * C1
+                                dot2.x -= div * sx * C4 * C1
+                            } else if (dx < ideal) {
+                                dot.x -= div * sx * C4 * C1
+                                dot2.x += div * sx * C4 * C1
+                            }
+                            if (dy > ideal) {
+                                dot.y += div * sy * C4 * C1
+                                dot2.y -= div * sy * C4 * C1
+                            } else if (dy < ideal) {
+                                dot.y -= div * sy * C4 * C1
+                                dot2.y += div * sy * C4 * C1
+                            }
+                        // }
                     } else {
                         // repel non-linked
                         let dx = dot.x - dot2.x
-                        let fx = C3 / Math.sqrt(Math.abs(dx)) * Math.sign(dx) * C4
-                        dot.x += fx
                         let dy = dot.y - dot2.y
+                        dx *= 2
+                        dy *= 2
+                        let fx = C3 / Math.sqrt(Math.abs(dx)) * Math.sign(dx) * C4
                         let fy = C3 / Math.sqrt(Math.abs(dy)) * Math.sign(dy) * C4
-                        dot.y += fy
 
-                        dot2.x -= fx
-                        dot2.y -= fy
+                        dot.x += fx * 3
+                        dot.y += fy * 3
+                        dot2.x -= fx * 3
+                        dot2.y -= fy * 3
                     }
                 }
                 // center all regardless
@@ -125,23 +167,6 @@ class GraphingCanvas {
     }
     refreshCanvas() {
         this.clearCanvas()
-        function makeGrid(c: CanvasRenderingContext2D) {
-            let numC = 2
-            let numR = 2
-            let cellW = innerWidth / numC
-            let cellH = innerHeight / numR
-            for (let i = 0; i < Math.round(numC); i++) {
-                c.moveTo(cellW * i, 0)
-                c.lineTo(cellW * i, innerHeight)
-                c.stroke()
-            }
-            for (let i = 0; i < Math.round(numR); i++) {
-                c.moveTo(0, cellH * i)
-                c.lineTo(innerWidth, cellH * i)
-                c.stroke()
-            }
-        }
-        // makeGrid(this.context)
         for (let dot of this.dots) {
             dot.linked.forEach(linkedDot => {
                 graph.drawLink(dot, linkedDot)
@@ -152,28 +177,40 @@ class GraphingCanvas {
     drawLink(dot: Dot, linkedDot: Dot) {
         this.context.beginPath()
         this.context.strokeStyle = "gray"
-        this.context.lineWidth = 5
+        this.context.lineWidth = 2
         this.context.lineTo(dot.x, dot.y)
         this.context.lineTo(linkedDot.x, linkedDot.y)
         this.context.stroke()
     }
 }
-
+let tick = 0
 function beginAnimation(graph: GraphingCanvas) {
     requestAnimationFrame(() => beginAnimation(graph))
-    graph.calculatePhysics()
+    // if (tick < 200) {
+        tick++
+        graph.calculatePhysics()
+    // }
     graph.refreshCanvas()
 }
 
+let C0 = 1
+let C1 = 10 * C0
+let C2 = 20 * C0
+let C3 = 0.5 * C0
+let C4 = 0.5 * C0
+let normalC5 = 1e-10
+let C5 = normalC5 * C2
 let graph = new GraphingCanvas()
-// graph.populateGraphWithTestNodes()
+graph.populateGraphWithTestNodes()
 beginAnimation(graph)
 window.addEventListener("click", (e: MouseEvent) => {
     if (!document.getElementById("inputter")) {
         let input = document.createElement("input")
         input.id = "inputter"
         stylize(input, { left: e.clientX + "px", top: e.clientY + "px", position: "absolute" })
-        document.body.appendChild(input)
+        document.body.appendChild(input) // @ts-expect-error there is a value here
         input.onkeydown = (e) => { if (e.key === "Enter") graph.newDot(e.target!.value, graph.dots[0] ? getRandom(graph.dots) : undefined) }
+        input.focus()
+        input.onblur = () => { document.body.removeChild(document.getElementById("inputter")!) }
     }
 })
