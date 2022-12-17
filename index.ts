@@ -39,7 +39,8 @@ class GraphingCanvas {
         public height: number = innerHeight,
         public dots: Dot[] = [],
         public where: HTMLElement = document.body,
-        public canvas: HTMLCanvasElement = document.createElement("canvas")
+        public canvas: HTMLCanvasElement = document.createElement("canvas"),
+        public currentDot?: Dot
     ) {
         this.context = this.canvas.getContext("2d")!
         canvas.width = width
@@ -62,16 +63,18 @@ class GraphingCanvas {
         if (linkTo) {
             links.push(linkTo)
         }
-        this.dots.push(new Dot(x, y, title, links))
+        let dot = new Dot(x, y, title, links)
+        this.dots.push(dot)
         let inputter = document.getElementById("inputter")! as HTMLInputElement
         inputter.value = ""
         // for(let dot in this.dots)
         // this.dots.push(new Dot(this.randomW(), this.randomH(), ""))
         // console.log(this.dots.length)
+        return dot
     }
     populateGraphWithTestNodes() {
         let i = 0;
-        while (i < 500) {
+        while (i < 0) {
             let title = getRandom(["meow", "woof", "bark", 'purr', "buzz", "zzzz", "side", "left", "right", "orange", "cat", "wooo", "guitar playing", "sheet music", "water bottle", "cup"])
             this.dots.push(new Dot(this.width * Math.random(), this.height * Math.random(), title))
             i++
@@ -123,21 +126,21 @@ class GraphingCanvas {
                         // }
                         // d*= 2
                         // if (d > 1000){
-                            let div = Math.log(d)
-                            if (dx > ideal) {
-                                dot.x += div * sx * C4 * C1
-                                dot2.x -= div * sx * C4 * C1
-                            } else if (dx < ideal) {
-                                dot.x -= div * sx * C4 * C1
-                                dot2.x += div * sx * C4 * C1
-                            }
-                            if (dy > ideal) {
-                                dot.y += div * sy * C4 * C1
-                                dot2.y -= div * sy * C4 * C1
-                            } else if (dy < ideal) {
-                                dot.y -= div * sy * C4 * C1
-                                dot2.y += div * sy * C4 * C1
-                            }
+                        let div = Math.log(d)
+                        if (dx > ideal) {
+                            dot.x += div * sx * C4 * C1
+                            dot2.x -= div * sx * C4 * C1
+                        } else if (dx < ideal) {
+                            dot.x -= div * sx * C4 * C1
+                            dot2.x += div * sx * C4 * C1
+                        }
+                        if (dy > ideal) {
+                            dot.y += div * sy * C4 * C1
+                            dot2.y -= div * sy * C4 * C1
+                        } else if (dy < ideal) {
+                            dot.y -= div * sy * C4 * C1
+                            dot2.y += div * sy * C4 * C1
+                        }
                         // }
                     } else {
                         // repel non-linked
@@ -187,8 +190,8 @@ let tick = 0
 function beginAnimation(graph: GraphingCanvas) {
     requestAnimationFrame(() => beginAnimation(graph))
     // if (tick < 200) {
-        tick++
-        graph.calculatePhysics()
+    tick++
+    graph.calculatePhysics()
     // }
     graph.refreshCanvas()
 }
@@ -208,8 +211,14 @@ window.addEventListener("click", (e: MouseEvent) => {
         let input = document.createElement("input")
         input.id = "inputter"
         stylize(input, { left: e.clientX + "px", top: e.clientY + "px", position: "absolute" })
-        document.body.appendChild(input) // @ts-expect-error there is a value here
-        input.onkeydown = (e) => { if (e.key === "Enter") graph.newDot(e.target!.value, graph.dots[0] ? getRandom(graph.dots) : undefined) }
+        document.body.appendChild(input)
+        input.onkeydown = (e) => {
+            if (e.key === "Enter") { // @ts-expect-error there is a value here
+                graph.currentDot = graph.newDot(e.target!.value)
+            } else if (e.key === "Tab") { // @ts-expect-error there is a value here
+                graph.newDot(e.target!.value, graph.currentDot ?? undefined)
+            }
+        }
         input.focus()
         input.onblur = () => { document.body.removeChild(document.getElementById("inputter")!) }
     }
