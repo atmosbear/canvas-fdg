@@ -74,7 +74,7 @@ class GraphingCanvas {
     }
     populateGraphWithTestNodes() {
         let i = 0;
-        while (i < 0) {
+        while (i < 100) {
             let title = getRandom(["meow", "woof", "bark", 'purr', "buzz", "zzzz", "side", "left", "right", "orange", "cat", "wooo", "guitar playing", "sheet music", "water bottle", "cup"])
             this.dots.push(new Dot(this.width * Math.random(), this.height * Math.random(), title))
             i++
@@ -187,21 +187,48 @@ class GraphingCanvas {
     }
 }
 let tick = 0
+let demo = true
+window.addEventListener("keydown", (e) => {
+    if (e.key === ";") {
+        demo = false; graph.dots = [];
+        C0 = 0.5
+        C1 = 0.1 * C0
+        C2 = 1 * C0
+        C3 = 0.1 * C0
+        C4 = 3 * C0
+        let a = document.getElementById("instrucbox")
+        graph.clearCanvas()
+        a.innerText = "\n\n Left click to open the text box, and then type the name of the node.\n\nThen press TAB to add a node, or ENTER to link it to a previous one (if you've already pressed tab before).\n\nSorry, that's all there is for right this second - but I will come back to this project soon and make it a full-fledged note app!\n\nSome obvious deficiencies with my method are that they tend to shake too much and organize in X's instead of proper circles.\n\nI would fix this by implementing sturdier physics methods."
+    }
+})
 function beginAnimation(graph: GraphingCanvas) {
     requestAnimationFrame(() => beginAnimation(graph))
-    // if (tick < 200) {
-    tick++
-    graph.calculatePhysics()
-    // }
+    if (tick < 200 || demo === false) {
+        tick++
+        graph.calculatePhysics()
+        if (demo === true) {
+            C2 /= 1.01
+            C1 /= 1.01
+            C3 *= 1.01
+        }
+    } else {
+        if (!document.getElementById("instrucbox")) {
+            let a = document.createElement("div")
+            a.id = "instrucbox"
+            a.innerText = "Even though the labels are just random unrelated words, you can see how this could be useful for visualizing data. There is a lot more for me to do - this is just a very tiny experiment.\n\nTo continue, press the semicolon key and you will be greeted with a blank screen where you can create your own nodes. "
+            Object.assign(a.style, { position: "absolute", top: "30px", left: "30px", color: "white" })
+            document.body.appendChild(a)
+        }
+    }
     graph.refreshCanvas()
 }
 
-let C0 = 1
-let C1 = 10 * C0
-let C2 = 20 * C0
-let C3 = 0.5 * C0
-let C4 = 0.5 * C0
-let normalC5 = 1e-10
+let C0 = 1.1
+let C1 = 0.5 * C0
+let C2 = 1 * C0
+let C3 = 0.1 * C0
+let C4 = 3 * C0
+let normalC5 = 2e-5
 let C5 = normalC5 * C2
 let graph = new GraphingCanvas()
 graph.populateGraphWithTestNodes()
@@ -213,9 +240,9 @@ window.addEventListener("click", (e: MouseEvent) => {
         stylize(input, { left: e.clientX + "px", top: e.clientY + "px", position: "absolute" })
         document.body.appendChild(input)
         input.onkeydown = (e) => {
-            if (e.key === "Enter") { // @ts-expect-error there is a value here
+            if (e.key === "Tab") { // @ts-expect-error there is a value here
                 graph.currentDot = graph.newDot(e.target!.value)
-            } else if (e.key === "Tab") { // @ts-expect-error there is a value here
+            } else if (e.key === "Enter") { // @ts-expect-error there is a value here
                 graph.newDot(e.target!.value, graph.currentDot ?? undefined)
             }
         }

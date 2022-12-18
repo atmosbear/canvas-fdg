@@ -80,7 +80,7 @@ var GraphingCanvas = /** @class */ (function () {
     GraphingCanvas.prototype.populateGraphWithTestNodes = function () {
         var _this = this;
         var i = 0;
-        while (i < 0) {
+        while (i < 100) {
             var title = getRandom(["meow", "woof", "bark", 'purr', "buzz", "zzzz", "side", "left", "right", "orange", "cat", "wooo", "guitar playing", "sheet music", "water bottle", "cup"]);
             this.dots.push(new Dot(this.width * Math.random(), this.height * Math.random(), title));
             i++;
@@ -197,20 +197,49 @@ var GraphingCanvas = /** @class */ (function () {
     return GraphingCanvas;
 }());
 var tick = 0;
+var demo = true;
+window.addEventListener("keydown", function (e) {
+    if (e.key === ";") {
+        demo = false;
+        graph.dots = [];
+        C0 = 0.5;
+        C1 = 0.1 * C0;
+        C2 = 1 * C0;
+        C3 = 0.1 * C0;
+        C4 = 3 * C0;
+        var a = document.getElementById("instrucbox");
+        graph.clearCanvas();
+        a.innerText = "\n\n Left click to open the text box, and then type the name of the node.\n\nThen press TAB to add a node, or ENTER to link it to a previous one (if you've already pressed tab before).\n\nSorry, that's all there is for right this second - but I will come back to this project soon and make it a full-fledged note app!\n\nSome obvious deficiencies with my method are that they tend to shake too much and organize in X's instead of proper circles.\n\nI would fix this by implementing sturdier physics methods.";
+    }
+});
 function beginAnimation(graph) {
     requestAnimationFrame(function () { return beginAnimation(graph); });
-    // if (tick < 200) {
-    tick++;
-    graph.calculatePhysics();
-    // }
+    if (tick < 200 || demo === false) {
+        tick++;
+        graph.calculatePhysics();
+        if (demo === true) {
+            C2 /= 1.01;
+            C1 /= 1.01;
+            C3 *= 1.01;
+        }
+    }
+    else {
+        if (!document.getElementById("instrucbox")) {
+            var a = document.createElement("div");
+            a.id = "instrucbox";
+            a.innerText = "Even though the labels are just random unrelated words, you can see how this could be useful for visualizing data. There is a lot more for me to do - this is just a very tiny experiment.\n\nTo continue, press the semicolon key and you will be greeted with a blank screen where you can create your own nodes. ";
+            Object.assign(a.style, { position: "absolute", top: "30px", left: "30px", color: "white" });
+            document.body.appendChild(a);
+        }
+    }
     graph.refreshCanvas();
 }
-var C0 = 1;
-var C1 = 10 * C0;
-var C2 = 20 * C0;
-var C3 = 0.5 * C0;
-var C4 = 0.5 * C0;
-var normalC5 = 1e-10;
+var C0 = 1.1;
+var C1 = 0.5 * C0;
+var C2 = 1 * C0;
+var C3 = 0.1 * C0;
+var C4 = 3 * C0;
+var normalC5 = 2e-5;
 var C5 = normalC5 * C2;
 var graph = new GraphingCanvas();
 graph.populateGraphWithTestNodes();
@@ -223,10 +252,10 @@ window.addEventListener("click", function (e) {
         document.body.appendChild(input);
         input.onkeydown = function (e) {
             var _a;
-            if (e.key === "Enter") { // @ts-expect-error there is a value here
+            if (e.key === "Tab") { // @ts-expect-error there is a value here
                 graph.currentDot = graph.newDot(e.target.value);
             }
-            else if (e.key === "Tab") { // @ts-expect-error there is a value here
+            else if (e.key === "Enter") { // @ts-expect-error there is a value here
                 graph.newDot(e.target.value, (_a = graph.currentDot) !== null && _a !== void 0 ? _a : undefined);
             }
         };
