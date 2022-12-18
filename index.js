@@ -209,7 +209,7 @@ window.addEventListener("keydown", function (e) {
         C4 = 3 * C0;
         var a = document.getElementById("instrucbox");
         graph.clearCanvas();
-        a.innerText = "\n\n Left click to open the text box, and then type the name of the node.\n\nThen press TAB to add a node, or ENTER to link it to a previous one (if you've already pressed tab before).\n\nSorry, that's all there is for right this second - but I will come back to this project soon and make it a full-fledged note app!\n\nSome obvious deficiencies with my method are that they tend to shake too much and organize in X's instead of proper circles.\n\nI would fix this by implementing sturdier physics methods.";
+        a.innerText = "\n\n Left click to open the text box, and then type the name of the node.\n\nThen press TAB to add a node, or ENTER to link it to a previous one (if you've already pressed tab before).\n\nSorry, that's all there is for right this second - but I will come back to this project soon and make it a full-fledged note app!\n\nSome obvious deficiencies with my method are that they tend to shake too much and organize in X's instead of proper circles.\n\nI will - eventually - fix this by implementing sturdier physics methods.";
     }
 });
 function beginAnimation(graph) {
@@ -227,7 +227,7 @@ function beginAnimation(graph) {
         if (!document.getElementById("instrucbox")) {
             var a = document.createElement("div");
             a.id = "instrucbox";
-            a.innerText = "Even though the labels are just random unrelated words, you can see how this could be useful for visualizing data. There is a lot more for me to do - this is just a very tiny experiment.\n\nTo continue, press the semicolon key and you will be greeted with a blank screen where you can create your own nodes. ";
+            a.innerText = "Even though the labels are just random unrelated words (for testing), you can see how this could be useful for visualizing data if it were actual relations.\n\nThere is a lot more for me to do - this is just a very tiny experiment.\n\nTo continue, press the semicolon key and you will be greeted with a blank screen where you can create your own nodes. ";
             Object.assign(a.style, { position: "absolute", top: "30px", left: "30px", color: "white" });
             document.body.appendChild(a);
         }
@@ -239,7 +239,7 @@ var C1 = 0.5 * C0;
 var C2 = 1 * C0;
 var C3 = 0.1 * C0;
 var C4 = 3 * C0;
-var normalC5 = 2e-5;
+var normalC5 = 2e-4;
 var C5 = normalC5 * C2;
 var graph = new GraphingCanvas();
 graph.populateGraphWithTestNodes();
